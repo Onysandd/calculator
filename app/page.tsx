@@ -57,7 +57,11 @@ export default function Home() {
 
     const handleButtonClick = (button: ICalcButton) => {
         let current = equation;
-        if (button.type === ButtonType.OPERATOR && endsWithOperator(current)) current = current.slice(0, -1);
+        if (button.type === ButtonType.OPERATOR) {
+            if (current.length < 1 && button.displayName != "-") return;
+            if (endsWithOperator(current)) current = current.slice(0, -1);
+        }
+
         const nextState = button.action(current);
 
         setEquation(nextState);
