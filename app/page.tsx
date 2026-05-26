@@ -15,7 +15,7 @@ interface ICalcButton {
 }
 
 function endsWithOperator(equation: string): boolean {
-    return /[+\-*/]$/.test(equation);
+    return /[+\-*/^%]$/.test(equation);
 }
 
 export default function Home() {
