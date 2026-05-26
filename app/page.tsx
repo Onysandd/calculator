@@ -1,65 +1,92 @@
-import Image from "next/image";
+"use client";
+import {useState} from "react";
+import {evaluate} from "mathjs";
+
+enum ButtonType {
+    NUMBER,
+    OPERATOR,
+    ACTION
+}
+
+interface ICalcButton {
+    displayName: string;
+    type: ButtonType;
+    action: (current: string) => string;
+}
+
+function endsWithOperator(equation: string): boolean {
+    return /[+\-*/]$/.test(equation);
+}
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    const [equation, setEquation] = useState<string>("");
+
+    const buttons: ICalcButton[] = [
+        { displayName: "%", type: ButtonType.OPERATOR, action: (cur) => cur + "%" },
+        { displayName: "/", type: ButtonType.OPERATOR, action: (cur) => cur + "/" },
+        { displayName: "*", type: ButtonType.OPERATOR, action: (cur) => cur + "*" },
+        { displayName: "^", type: ButtonType.OPERATOR, action: (cur) => cur + "^" },
+
+        { displayName: "7", type: ButtonType.NUMBER, action: (cur) => cur + "7" },
+        { displayName: "8", type: ButtonType.NUMBER, action: (cur) => cur + "8" },
+        { displayName: "9", type: ButtonType.NUMBER, action: (cur) => cur + "9" },
+        { displayName: "<-", type: ButtonType.ACTION, action: (cur) => cur.slice(0, -1) },
+
+        { displayName: "4", type: ButtonType.NUMBER, action: (cur) => cur + "4" },
+        { displayName: "5", type: ButtonType.NUMBER, action: (cur) => cur + "5" },
+        { displayName: "6", type: ButtonType.NUMBER, action: (cur) => cur + "6" },
+        { displayName: "-", type: ButtonType.OPERATOR, action: (cur) => cur + "-" },
+
+        { displayName: "1", type: ButtonType.NUMBER, action: (cur) => cur + "1" },
+        { displayName: "2", type: ButtonType.NUMBER, action: (cur) => cur + "2" },
+        { displayName: "3", type: ButtonType.NUMBER, action: (cur) => cur + "3" },
+        { displayName: "+", type: ButtonType.OPERATOR, action: (cur) => cur + "+" },
+
+        { displayName: ".", type: ButtonType.NUMBER, action: (cur) => cur + "." },
+        { displayName: "0", type: ButtonType.NUMBER, action: (cur) => cur + "0" },
+        { displayName: "=", type: ButtonType.ACTION, action: (cur) => {
+                if (cur.length < 1) return cur;
+                try {
+                    return String(evaluate(cur));
+                } catch {
+                    return "Error";
+                }
+            }},
+        { displayName: "C", type: ButtonType.ACTION, action: () => "" },
+    ];
+
+    const handleButtonClick = (button: ICalcButton) => {
+        let current = equation;
+        if (button.type === ButtonType.OPERATOR && endsWithOperator(current)) current = current.slice(0, -1);
+        const nextState = button.action(current);
+
+        setEquation(nextState);
+    }
+
+    return (
+        <div className="flex flex-col flex-1 items-center justify-center font-sans bg-black">
+            <div className="flex flex-col bg-zinc-100 rounded-2xl p-4 justify-center content-center gap-5">
+                <div className="bg-gray-400 text-gray-100 min-w-60 h-10 rounded-xl text-end content-center text-xl tracking-[.2em] px-2">
+                    {equation || 0}
+                </div>
+                <div className="grid grid-cols-4 gap-5">
+                    {buttons.map((button) => (
+                        <button
+                            key={button.displayName}
+                            onClick={() => handleButtonClick(button)}
+                            className={`h-12 rounded-xl text-xl font-semibold transition-colors ${
+                                button.type === ButtonType.OPERATOR
+                                    ? "bg-orange-500 text-white hover:bg-orange-400"
+                                    : button.type === ButtonType.ACTION
+                                        ? "bg-gray-500 text-white hover:bg-gray-400"
+                                        : "bg-zinc-700 text-white hover:bg-zinc-600"
+                            }`}
+                        >
+                            {button.displayName}
+                        </button>
+                    ))}
+                </div>
+            </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    );
 }
